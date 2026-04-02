@@ -1,0 +1,427 @@
+import java.util.*;
+
+public class week1 {
+
+    /* ------------------------------------------------
+       1. Username Availability Checker
+    ------------------------------------------------ */
+
+    static class UsernameChecker {
+
+        HashMap<String, Integer> users = new HashMap<>();
+        HashMap<String, Integer> attempts = new HashMap<>();
+
+        boolean checkAvailability(String username) {
+
+            attempts.put(username,
+                    attempts.getOrDefault(username, 0) + 1);
+
+            return !users.containsKey(username);
+        }
+
+        void register(String username, int id) {
+            users.put(username, id);
+        }
+
+        List<String> suggest(String username) {
+
+            List<String> list = new ArrayList<>();
+
+            for (int i = 1; i <= 3; i++)
+                list.add(username + i);
+
+            list.add(username.replace("_", "."));
+
+            return list;
+        }
+    }
+
+
+    /* ------------------------------------------------
+       2. Flash Sale Inventory Manager
+    ------------------------------------------------ */
+
+    static class Inventory {
+
+        HashMap<String, Integer> stock = new HashMap<>();
+        Queue<Integer> waitingList = new LinkedList<>();
+
+        void addProduct(String id, int qty) {
+            stock.put(id, qty);
+        }
+
+        synchronized void purchase(String id, int user) {
+
+            int s = stock.getOrDefault(id, 0);
+
+            if (s > 0) {
+
+                stock.put(id, s - 1);
+
+                System.out.println("Purchase success. Remaining: " + (s - 1));
+
+            } else {
+
+                waitingList.add(user);
+
+                System.out.println("Added to waiting list. Position: "
+                        + waitingList.size());
+            }
+        }
+    }
+
+
+    /* ------------------------------------------------
+       3. DNS Cache with TTL
+    ------------------------------------------------ */
+
+    static class DNSEntry {
+
+        String ip;
+        long expiry;
+
+        DNSEntry(String ip, int ttl) {
+            this.ip = ip;
+            expiry = System.currentTimeMillis() + ttl * 1000;
+        }
+
+        boolean expired() {
+            return System.currentTimeMillis() > expiry;
+        }
+    }
+
+    static class DNSCache {
+
+        HashMap<String, DNSEntry> cache = new HashMap<>();
+
+        String resolve(String domain) {
+
+            if (cache.containsKey(domain)) {
+
+                DNSEntry e = cache.get(domain);
+
+                if (!e.expired())
+                    return "Cache HIT → " + e.ip;
+            }
+
+            String newIP = "172.217.14." + new Random().nextInt(200);
+
+            cache.put(domain, new DNSEntry(newIP, 5));
+
+            return "Cache MISS → " + newIP;
+        }
+    }
+
+
+    /* ------------------------------------------------
+       4. Plagiarism Detector
+    ------------------------------------------------ */
+
+    static class PlagiarismDetector {
+
+        HashMap<String, Set<String>> index = new HashMap<>();
+
+        List<String> ngrams(String text, int n) {
+
+            String[] words = text.split(" ");
+
+            List<String> grams = new ArrayList<>();
+
+            for (int i = 0; i <= words.length - n; i++) {
+
+                StringBuilder g = new StringBuilder();
+
+                for (int j = 0; j < n; j++)
+                    g.append(words[i + j]).append(" ");
+
+                grams.add(g.toString().trim());
+            }
+
+            return grams;
+        }
+
+        void addDoc(String id, String text) {
+
+            for (String g : ngrams(text, 3)) {
+
+                index.putIfAbsent(g, new HashSet<>());
+
+                index.get(g).add(id);
+            }
+        }
+    }
+
+
+    /* ------------------------------------------------
+       5. Real-Time Analytics
+    ------------------------------------------------ */
+
+    static class Analytics {
+
+        HashMap<String, Integer> pageViews = new HashMap<>();
+        HashMap<String, Set<String>> visitors = new HashMap<>();
+
+        void process(String url, String user) {
+
+            pageViews.put(url,
+                    pageViews.getOrDefault(url, 0) + 1);
+
+            visitors.putIfAbsent(url, new HashSet<>());
+
+            visitors.get(url).add(user);
+        }
+
+        void dashboard() {
+
+            System.out.println("Page views: " + pageViews);
+
+            for (String url : visitors.keySet())
+                System.out.println(url + " unique visitors "
+                        + visitors.get(url).size());
+        }
+    }
+
+
+    /* ------------------------------------------------
+       6. API Rate Limiter
+    ------------------------------------------------ */
+
+    static class RateLimiter {
+
+        HashMap<String, Integer> requests = new HashMap<>();
+
+        int limit = 5;
+
+        boolean allow(String client) {
+
+            int used = requests.getOrDefault(client, 0);
+
+            if (used < limit) {
+
+                requests.put(client, used + 1);
+
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+
+    /* ------------------------------------------------
+       7. Autocomplete
+    ------------------------------------------------ */
+
+    static class Autocomplete {
+
+        HashMap<String, Integer> freq = new HashMap<>();
+
+        void add(String q) {
+
+            freq.put(q, freq.getOrDefault(q, 0) + 1);
+        }
+
+        List<String> search(String prefix) {
+
+            List<String> list = new ArrayList<>();
+
+            for (String q : freq.keySet())
+                if (q.startsWith(prefix))
+                    list.add(q);
+
+            list.sort((a, b) -> freq.get(b) - freq.get(a));
+
+            return list.subList(0, Math.min(5, list.size()));
+        }
+    }
+
+
+    /* ------------------------------------------------
+       8. Parking Lot (Open Addressing)
+    ------------------------------------------------ */
+
+    static class ParkingLot {
+
+        String[] table = new String[50];
+
+        int hash(String plate) {
+            return Math.abs(plate.hashCode()) % table.length;
+        }
+
+        void park(String plate) {
+
+            int index = hash(plate);
+
+            while (table[index] != null)
+                index = (index + 1) % table.length;
+
+            table[index] = plate;
+
+            System.out.println("Vehicle parked at spot " + index);
+        }
+    }
+
+
+    /* ------------------------------------------------
+       9. Two Sum
+    ------------------------------------------------ */
+
+    static void twoSum(int[] arr, int target) {
+
+        HashMap<Integer, Integer> map = new HashMap<>();
+
+        for (int num : arr) {
+
+            int comp = target - num;
+
+            if (map.containsKey(comp))
+                System.out.println("Pair: " + comp + " + " + num);
+
+            map.put(num, 1);
+        }
+    }
+
+
+    /* ------------------------------------------------
+       10. Multi-Level Cache
+    ------------------------------------------------ */
+
+    static class MultiCache {
+
+        LinkedHashMap<String, String> L1 =
+                new LinkedHashMap<>(10, 0.75f, true);
+
+        HashMap<String, String> L2 = new HashMap<>();
+
+        HashMap<String, String> DB = new HashMap<>();
+
+        String get(String id) {
+
+            if (L1.containsKey(id))
+                return "L1 HIT";
+
+            if (L2.containsKey(id)) {
+
+                L1.put(id, L2.get(id));
+
+                return "L2 HIT → Promoted";
+            }
+
+            if (DB.containsKey(id)) {
+
+                L2.put(id, DB.get(id));
+
+                return "L3 DB HIT";
+            }
+
+            return "Not found";
+        }
+    }
+
+
+    /* ------------------------------------------------
+       MAIN METHOD
+    ------------------------------------------------ */
+
+    public static void main(String[] args) {
+
+        System.out.println("------ Username Checker ------");
+
+        UsernameChecker u = new UsernameChecker();
+
+        u.register("john_doe", 1);
+
+        System.out.println(u.checkAvailability("john_doe"));
+
+        System.out.println(u.suggest("john_doe"));
+
+
+        System.out.println("\n------ Flash Sale ------");
+
+        Inventory inv = new Inventory();
+
+        inv.addProduct("IPHONE15", 2);
+
+        inv.purchase("IPHONE15", 101);
+
+        inv.purchase("IPHONE15", 102);
+
+        inv.purchase("IPHONE15", 103);
+
+
+        System.out.println("\n------ DNS Cache ------");
+
+        DNSCache dns = new DNSCache();
+
+        System.out.println(dns.resolve("google.com"));
+
+        System.out.println(dns.resolve("google.com"));
+
+
+        System.out.println("\n------ Plagiarism ------");
+
+        PlagiarismDetector pd = new PlagiarismDetector();
+
+        pd.addDoc("doc1",
+                "this is a sample essay for plagiarism detection");
+
+
+        System.out.println("\n------ Analytics ------");
+
+        Analytics a = new Analytics();
+
+        a.process("/news", "user1");
+
+        a.process("/news", "user2");
+
+        a.dashboard();
+
+
+        System.out.println("\n------ Rate Limiter ------");
+
+        RateLimiter rl = new RateLimiter();
+
+        System.out.println(rl.allow("client1"));
+
+        System.out.println(rl.allow("client1"));
+
+
+        System.out.println("\n------ Autocomplete ------");
+
+        Autocomplete ac = new Autocomplete();
+
+        ac.add("java tutorial");
+
+        ac.add("javascript basics");
+
+        System.out.println(ac.search("jav"));
+
+
+        System.out.println("\n------ Parking ------");
+
+        ParkingLot p = new ParkingLot();
+
+        p.park("ABC123");
+
+        p.park("XYZ999");
+
+
+        System.out.println("\n------ Two Sum ------");
+
+        int[] arr = {500,300,200};
+
+        twoSum(arr,500);
+
+
+        System.out.println("\n------ Multi Cache ------");
+
+        MultiCache cache = new MultiCache();
+
+        cache.DB.put("video1","Movie");
+
+        System.out.println(cache.get("video1"));
+
+        System.out.println(cache.get("video1"));
+
+    }
+}
